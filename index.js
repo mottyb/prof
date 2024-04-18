@@ -4,9 +4,6 @@ const app = express();
 const cors = require("cors");
 const axios = require("axios");
 const PORT = process.env.PORT || 5556;
-const BASE_URL = process.env.BASE_URL;
-const multer = require("multer");
-const upload = multer({ dist: "./upload" });
 const fs = require("fs");
 
 app.use(express.json());
@@ -47,18 +44,24 @@ app.post("/api/adduser", async (req, res) => {
           },
         }
       );
-      if(result){
+      console.log({ result });
+
+      if (result) {
         const tokenUser = await axios.post(
           "https://bof.profchecksys.com/account/signin",
           {
-            username: result.data.username||req.body.data.user_login,
+            username: result.data.username || req.body.data.user_login,
             password: req.body.user_meta.billing_passapp[0],
           }
         );
         tokens[req.body.data.user_email] = tokenUser.data.token;
+        console.log({ tokens });
+        res.send("ok");
       }
     }
-      res.send("ok");
+    else{
+      res.send('ok')
+    }
   } catch (error) {
     console.log({ error });
     res.status(555).send("error");
@@ -71,8 +74,14 @@ app.post(
     try {
       const { body } = req;
       let attachedFiles = [];
-      if(body.attachedFiles.includes(' , '))body.attachedFiles.split(' , ').map((file,index)=>({name:"file number"+ index,content:file}))
-      else attachedFiles = [{name:"file ",content:body.attachedFiles}]
+      if (body.attachedFiles.includes(" , "))
+        body.attachedFiles
+          .split(" , ")
+          .map((file, index) => ({
+            name: "file number" + index,
+            content: file,
+          }));
+      else attachedFiles = [{ name: "file ", content: body.attachedFiles }];
       const json = {
         id: 0,
         name: "",
@@ -151,14 +160,16 @@ app.post(
           },
         }
       );
-      res.send('ok');
+      res.send("ok");
     } catch (err) {
       console.log({ err });
       res.send("error");
     }
   }
 );
-
+app.get("/", (req, res) => {
+  res.send("ok");
+});
 app.listen(PORT, () => {
   if (!fs.existsSync("./upload")) fs.mkdirSync("./upload");
   console.log("listening on port " + PORT);
